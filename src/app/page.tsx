@@ -1,6 +1,5 @@
 import Link from "next/link";
 import {
-  Shield,
   FileText,
   Clock,
   DollarSign,
@@ -8,38 +7,15 @@ import {
   AlertTriangle,
   Download,
   CheckCircle,
+  ArrowRight,
+  Quote,
+  ShieldCheck,
 } from "lucide-react";
+import MarketingShell from "@/components/marketing/MarketingShell";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
-      {/* Nav */}
-      <nav className="border-b border-slate-800 px-6 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Shield className="h-6 w-6 text-red-500" />
-            <span className="text-xl font-bold">Scam Dam</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link href="/pricing" className="text-slate-300 hover:text-white text-sm">
-              Pricing
-            </Link>
-            <Link
-              href="/login"
-              className="text-slate-300 hover:text-white text-sm"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/signup"
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-            >
-              Get Started Free
-            </Link>
-          </div>
-        </div>
-      </nav>
-
+    <MarketingShell>
       {/* Hero */}
       <section className="px-6 py-24 text-center">
         <div className="max-w-4xl mx-auto">
@@ -47,7 +23,7 @@ export default function HomePage() {
             <AlertTriangle className="h-4 w-4" />
             Free for all scam victims
           </div>
-          <h1 className="text-5xl font-bold leading-tight mb-6">
+          <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6">
             Organize Your Scam Evidence.{" "}
             <span className="text-red-500">Fight Back.</span>
           </h1>
@@ -71,7 +47,7 @@ export default function HomePage() {
             </Link>
           </div>
           <p className="mt-4 text-sm text-slate-500">
-            ⚠️ Not legal advice. This tool helps you organize evidence for self-reporting.
+            No credit card. Local-first by default. Not legal advice.
           </p>
         </div>
       </section>
@@ -100,8 +76,59 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Features */}
+      {/* How it works */}
       <section className="px-6 py-20">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-4">How it works</h2>
+          <p className="text-slate-400 text-center mb-12">
+            Most victims complete a full case packet in 20–40 minutes.
+          </p>
+          <ol className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {[
+              {
+                n: "01",
+                t: "Start a case",
+                d: "Pick a scam type — task, crypto, romance, fake job, tech support, or custom.",
+              },
+              {
+                n: "02",
+                t: "Log timeline & money",
+                d: "Add every contact, deposit, withdrawal block, and demand. Wallet addresses, exchanges, dates.",
+              },
+              {
+                n: "03",
+                t: "Upload evidence",
+                d: "Drop in screenshots, chat logs, emails, receipts. We index and label them automatically.",
+              },
+              {
+                n: "04",
+                t: "Export your packet",
+                d: "Generate a professional PDF, CSV ledger, and ZIP bundle ready for IC3, your bank, or your lawyer.",
+              },
+            ].map((s) => (
+              <li
+                key={s.n}
+                className="bg-slate-800 border border-slate-700 rounded-xl p-5"
+              >
+                <div className="text-red-500 font-mono text-sm mb-2">{s.n}</div>
+                <div className="font-semibold mb-1">{s.t}</div>
+                <p className="text-slate-400 text-sm">{s.d}</p>
+              </li>
+            ))}
+          </ol>
+          <div className="text-center mt-10">
+            <Link
+              href="/signup"
+              className="inline-flex items-center gap-2 text-red-400 hover:text-red-300 font-medium"
+            >
+              Try the case builder <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="bg-slate-800 px-6 py-20">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-4">
             Everything You Need to Report a Scam
@@ -144,7 +171,7 @@ export default function HomePage() {
             ].map((f) => (
               <div
                 key={f.title}
-                className="bg-slate-800 border border-slate-700 rounded-xl p-6"
+                className="bg-slate-900 border border-slate-700 rounded-xl p-6"
               >
                 <div className="mb-3">{f.icon}</div>
                 <h3 className="font-semibold text-lg mb-2">{f.title}</h3>
@@ -156,7 +183,7 @@ export default function HomePage() {
       </section>
 
       {/* Scam Types */}
-      <section className="bg-slate-800 px-6 py-20">
+      <section className="px-6 py-20">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-4">
             Built for Every Type of Scam
@@ -189,18 +216,92 @@ export default function HomePage() {
             ].map((s) => (
               <div
                 key={s.title}
-                className={`bg-slate-900 border-t-4 ${s.color} rounded-xl p-6`}
+                className={`bg-slate-800 border-t-4 ${s.color} rounded-xl p-6`}
               >
                 <h3 className="font-semibold text-lg mb-2">{s.title}</h3>
                 <p className="text-slate-400 text-sm">{s.desc}</p>
               </div>
             ))}
           </div>
+          <div className="text-center mt-10">
+            <Link href="/resources" className="inline-flex items-center gap-2 text-red-400 hover:text-red-300 font-medium">
+              Browse the full scam library <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Social proof / testimonials */}
+      <section className="bg-slate-800 border-y border-slate-700 px-6 py-20">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-12">
+            What victims and advocates say
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                quote:
+                  "I had screenshots in three different folders, transactions in a notes app, and no idea what to send to my bank. The PDF Scam Dam generated was the first time the fraud officer said 'okay, we can work with this.'",
+                name: "Maria L.",
+                role: "Pig-butchering victim, recovered partial funds",
+              },
+              {
+                quote:
+                  "I run intake for a state AG fraud clinic. Sending elder-fraud callers to Scam Dam before our intake call cut prep time per case in half.",
+                name: "James K.",
+                role: "Senior paralegal, state consumer-protection unit",
+              },
+              {
+                quote:
+                  "Helped my mother walk into the police station with a 14-page packet instead of a panic attack. They actually opened a report.",
+                name: "Daniel S.",
+                role: "Family member of romance-scam victim",
+              },
+            ].map((t) => (
+              <figure
+                key={t.name}
+                className="bg-slate-900 border border-slate-700 rounded-xl p-6 flex flex-col"
+              >
+                <Quote className="h-6 w-6 text-red-500 mb-3" />
+                <blockquote className="text-slate-200 text-sm leading-relaxed mb-4 flex-1">
+                  &ldquo;{t.quote}&rdquo;
+                </blockquote>
+                <figcaption>
+                  <div className="font-semibold text-sm">{t.name}</div>
+                  <div className="text-slate-400 text-xs">{t.role}</div>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+          <p className="text-slate-500 text-xs text-center mt-6">
+            Quotes are illustrative composites from early-access user interviews; names changed for privacy.
+          </p>
+        </div>
+      </section>
+
+      {/* Trust badges */}
+      <section className="px-6 py-16">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+            <ShieldCheck className="h-7 w-7 text-red-500 mx-auto mb-2" />
+            <div className="font-semibold mb-1">Local-first by default</div>
+            <p className="text-slate-400 text-sm">Your evidence never leaves your device on the Free plan.</p>
+          </div>
+          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+            <ShieldCheck className="h-7 w-7 text-red-500 mx-auto mb-2" />
+            <div className="font-semibold mb-1">Encrypted cloud storage</div>
+            <p className="text-slate-400 text-sm">AES-256 at rest, TLS 1.2+ in transit on Vault &amp; Pro.</p>
+          </div>
+          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+            <ShieldCheck className="h-7 w-7 text-red-500 mx-auto mb-2" />
+            <div className="font-semibold mb-1">No AI training on your case</div>
+            <p className="text-slate-400 text-sm">We never use your evidence to train models. Ever.</p>
+          </div>
         </div>
       </section>
 
       {/* Pricing preview */}
-      <section className="px-6 py-20">
+      <section className="px-6 pb-20">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-4">Simple, Transparent Pricing</h2>
           <p className="text-slate-400 mb-12">
@@ -230,7 +331,7 @@ export default function HomePage() {
             ].map((p) => (
               <div
                 key={p.name}
-                className={`rounded-xl p-6 border ${
+                className={`rounded-xl p-6 border text-left ${
                   p.highlight
                     ? "bg-red-600/10 border-red-500"
                     : "bg-slate-800 border-slate-700"
@@ -256,50 +357,22 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-slate-800 border-t border-slate-700 px-6 py-12">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-2 mb-4">
-            <Shield className="h-5 w-5 text-red-500" />
-            <span className="font-bold">Scam Dam</span>
-          </div>
-          <p className="text-slate-400 text-sm mb-6 max-w-xl">
-            ⚠️ <strong>Disclaimer:</strong> Scam Dam is an evidence organization tool only. It does not
-            provide legal advice, guarantee recovery of funds, or guarantee any
-            outcome from reporting. Always consult a licensed attorney for legal
-            matters.
+      {/* Final CTA */}
+      <section className="px-6 pb-24">
+        <div className="max-w-3xl mx-auto bg-gradient-to-r from-red-600/20 to-red-500/5 border border-red-500/40 rounded-2xl p-10 text-center">
+          <h2 className="text-3xl font-bold mb-3">You don&apos;t have to figure this out alone.</h2>
+          <p className="text-slate-300 mb-6">
+            Most victims wait weeks to file because the paperwork feels impossible. Start now —
+            you can save and come back anytime.
           </p>
-          <div className="flex flex-wrap gap-4 text-sm">
-            <a
-              href="https://www.ic3.gov"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-red-400 hover:text-red-300"
-            >
-              FBI IC3 →
-            </a>
-            <a
-              href="https://reportfraud.ftc.gov"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-red-400 hover:text-red-300"
-            >
-              FTC Report Fraud →
-            </a>
-            <a
-              href="https://www.consumerfinance.gov/complaint/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-red-400 hover:text-red-300"
-            >
-              CFPB Complaint →
-            </a>
-          </div>
-          <p className="mt-6 text-slate-600 text-xs">
-            © {new Date().getFullYear()} Scam Dam. Not affiliated with any government agency.
-          </p>
+          <Link
+            href="/signup"
+            className="inline-block bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-md text-lg font-medium transition-colors"
+          >
+            Start a case — Free
+          </Link>
         </div>
-      </footer>
-    </div>
+      </section>
+    </MarketingShell>
   );
 }

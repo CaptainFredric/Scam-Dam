@@ -1,5 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
-import { Shield, CheckCircle } from "lucide-react";
+import { CheckCircle } from "lucide-react";
+import MarketingShell from "@/components/marketing/MarketingShell";
+
+export const metadata: Metadata = {
+  title: "Pricing",
+  description:
+    "Free to organize your scam evidence. Pay only for polished exports, cloud sync, and pro features.",
+  alternates: { canonical: "/pricing" },
+};
 
 const plans = [
   {
@@ -21,16 +30,16 @@ const plans = [
   },
   {
     name: "Evidence Packet",
-    price: "$9–$29",
-    period: "one-time",
-    desc: "Export a clean report for a single case.",
+    price: "$19",
+    period: "one-time per case",
+    desc: "Export a clean, agency-ready packet for a single case.",
     features: [
       "Everything in Free",
-      "PDF evidence report",
+      "Watermark-free PDF report",
       "CSV transaction export",
-      "ZIP bundle with evidence",
-      "Watermark-free exports",
+      "ZIP bundle with all evidence",
       "Reporting agency links",
+      "Lifetime access to that packet",
     ],
     cta: "Buy Report Export",
     href: "/signup",
@@ -38,16 +47,16 @@ const plans = [
   },
   {
     name: "Vault",
-    price: "$10",
-    period: "per month",
-    desc: "Ongoing case management with cloud backup.",
+    price: "$8",
+    period: "per month, or $79/yr",
+    desc: "Ongoing case management with cloud backup and unlimited exports.",
     features: [
       "Everything in Evidence Packet",
-      "Cloud evidence storage (Supabase)",
-      "Unlimited exports",
-      "Case history & audit trail",
-      "Shareable case links",
-      "Priority support",
+      "Cloud evidence storage (encrypted)",
+      "Unlimited exports across all cases",
+      "Sync across devices",
+      "Shareable read-only case links",
+      "Email reminders for stalled cases",
     ],
     cta: "Start Vault",
     href: "/signup",
@@ -55,48 +64,55 @@ const plans = [
   },
   {
     name: "Professional",
-    price: "$99–$299",
-    period: "per month",
-    desc: "For attorneys, investigators, and advocates.",
+    price: "$49",
+    period: "per seat / month",
+    desc: "For attorneys, recovery firms, investigators, and advocates.",
     features: [
       "Everything in Vault",
       "Bulk case management",
-      "Client portal access",
       "Branded PDF reports",
+      "Client intake portal",
       "API access",
       "Dedicated support",
     ],
-    cta: "Contact Us",
-    href: "/signup",
+    cta: "Talk to sales",
+    href: "/contact",
     highlight: false,
+  },
+];
+
+const faqShort = [
+  {
+    q: "Is the Free plan really free forever?",
+    a: "Yes. Build unlimited cases, log transactions, upload evidence, and use the red-flag classifier. Free includes a watermarked PDF export. We charge only when you need a clean, agency-ready packet or cloud sync.",
+  },
+  {
+    q: "Can I cancel anytime?",
+    a: "Yes. Cancel from your dashboard. Subscription access continues to the end of the current billing period. No hold-music phone calls, ever.",
+  },
+  {
+    q: "Do you offer nonprofit / clinic discounts?",
+    a: "Yes. Legal aid clinics, AARP chapters, state AG fraud units, and victim-services nonprofits qualify for free or steeply discounted seats. Email partners@scamdam.app.",
+  },
+  {
+    q: "What if I bought a Packet but need cloud sync later?",
+    a: "Your Packet purchase credits toward your first month of Vault. Just reach out and we'll apply it.",
   },
 ];
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
-      <nav className="border-b border-slate-800 px-6 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <Shield className="h-6 w-6 text-red-500" />
-            <span className="text-xl font-bold">Scam Dam</span>
-          </Link>
-          <Link href="/login" className="text-slate-300 hover:text-white text-sm">
-            Sign In
-          </Link>
-        </div>
-      </nav>
-
-      <div className="px-6 py-20">
+    <MarketingShell>
+      <section className="px-6 py-20">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h1 className="text-4xl font-bold mb-4">Simple, Transparent Pricing</h1>
-            <p className="text-slate-400 text-lg">
-              Free to organize. Pay only when you need to export or store evidence.
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Simple, Transparent Pricing</h1>
+            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+              Free to organize. Pay only when you need to export, store, or scale evidence work.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             {plans.map((plan) => (
               <div
                 key={plan.name}
@@ -137,11 +153,25 @@ export default function PricingPage() {
             ))}
           </div>
 
-          <p className="text-center text-slate-500 text-sm mt-12">
-            ⚠️ Not legal advice. Scam Dam helps you organize evidence for self-reporting only.
-          </p>
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-2xl font-bold mb-6 text-center">Pricing FAQ</h2>
+            <div className="divide-y divide-slate-800 border border-slate-800 rounded-xl bg-slate-800/40 mb-10">
+              {faqShort.map((f, i) => (
+                <details key={i} className="group p-5">
+                  <summary className="cursor-pointer list-none flex items-start justify-between gap-4">
+                    <span className="font-medium text-white">{f.q}</span>
+                    <span className="text-slate-500 group-open:rotate-45 transition-transform text-xl leading-none">+</span>
+                  </summary>
+                  <p className="mt-3 text-slate-300 text-sm leading-relaxed">{f.a}</p>
+                </details>
+              ))}
+            </div>
+            <p className="text-center text-slate-500 text-sm">
+              Not legal advice. Scam Dam helps you organize evidence for self-reporting only.
+            </p>
+          </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </MarketingShell>
   );
 }
