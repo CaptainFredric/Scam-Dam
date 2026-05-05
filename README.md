@@ -61,6 +61,15 @@ Open [http://localhost:3000](http://localhost:3000).
 
 > **Demo mode**: The app works fully without Supabase configured. All data is stored in `localStorage` so you can explore every feature immediately.
 
+## Deployments
+
+Two targets, two purposes:
+
+- **Marketing site → GitHub Pages.** Pushed automatically via `.github/workflows/deploy-pages.yml` on every push to `main`. Builds a static export of the public pages only (landing, pricing, about, contact, FAQ, resources, security, privacy, terms, sitemap, robots) and publishes to `https://captainfredric.github.io/Scam-Dam`. The dashboard, dynamic case routes, Stripe API routes, and Supabase auth are stripped before build by `scripts/prepare-pages.mjs` (Pages can't run server code), and `/login`, `/signup`, `/dashboard` become "Coming soon" stubs that link back to the marketing site.
+- **Full app → Vercel** (or any Node host). Push to a Vercel project; everything works as-is, including dynamic routes, Stripe webhooks, and Supabase. **Required env vars:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_SITE_URL`.
+
+To enable Pages: in the GitHub repo, **Settings → Pages → Build and deployment → Source: GitHub Actions**, then push to `main` (or trigger the workflow manually).
+
 ## Pricing
 
 | Tier | Price | Description |
