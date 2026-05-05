@@ -2,11 +2,11 @@
 
 import type { Evidence } from "@/types/database";
 import Badge from "@/components/ui/Badge";
-import { Trash2, FileText, Image, MessageSquare, Mail, File } from "lucide-react";
+import { Trash2, FileText, Image as ImageIcon, MessageSquare, Mail, File } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
 const categoryIcons: Record<Evidence["category"], React.ReactNode> = {
-  screenshot: <Image className="h-5 w-5" />,
+  screenshot: <ImageIcon className="h-5 w-5" />,
   document: <FileText className="h-5 w-5" />,
   chat_log: <MessageSquare className="h-5 w-5" />,
   email: <Mail className="h-5 w-5" />,
