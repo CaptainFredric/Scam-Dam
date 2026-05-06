@@ -26,6 +26,8 @@ const removals = [
   "src/proxy.ts",
   "src/lib/supabase",
   "src/lib/stripe.ts",
+  "src/lib/plans.ts",
+  "src/lib/useSubscription.ts",
   "src/lib/exportZip.ts",
   "src/lib/exportCsv.ts",
   "src/lib/generateReport.ts",
@@ -37,6 +39,9 @@ const removals = [
   "src/components/timeline",
   "src/components/transactions",
   "src/components/layout",
+  "src/components/billing/UpgradeButton.tsx",
+  "src/components/billing/OpenPortalButton.tsx",
+  "src/components/billing/UpsellModal.tsx",
 ];
 
 for (const rel of removals) {

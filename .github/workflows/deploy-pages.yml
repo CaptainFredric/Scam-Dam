@@ -21,6 +21,7 @@ jobs:
       GITHUB_PAGES: "true"
       PAGES_BASE_PATH: /Scam-Dam
       NEXT_PUBLIC_SITE_URL: https://captainfredric.github.io/Scam-Dam
+      NEXT_PUBLIC_STATIC_ONLY: "true"
     steps:
       - uses: actions/checkout@v4
 

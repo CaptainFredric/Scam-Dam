@@ -9,11 +9,16 @@ const scamTypeLabels: Record<Case["scam_type"], string> = {
   other: "Other Scam",
 };
 
+export interface GenerateReportOptions {
+  watermark?: boolean;
+}
+
 export async function generateReport(
   caseData: Case,
   timeline: TimelineEntry[],
   transactions: Transaction[],
-  evidence: Evidence[]
+  evidence: Evidence[],
+  options: GenerateReportOptions = {}
 ): Promise<void> {
   const { default: jsPDF } = await import("jspdf");
   const { autoTable } = await import("jspdf-autotable");
@@ -28,6 +33,17 @@ export async function generateReport(
     const pageCount = doc.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
+      if (options.watermark) {
+        doc.saveGraphicsState();
+        doc.setGState(doc.GState({ opacity: 0.12 }));
+        doc.setFontSize(64);
+        doc.setTextColor(180, 30, 30);
+        doc.text("SCAM DAM — FREE PLAN PREVIEW", pageW / 2, pageH / 2, {
+          align: "center",
+          angle: 30,
+        });
+        doc.restoreGraphicsState();
+      }
       doc.setFontSize(8);
       doc.setTextColor(150, 150, 150);
       doc.text(

@@ -60,3 +60,24 @@ export interface RedFlag {
   description: string;
   scam_types: string[];
 }
+
+export type SubscriptionTier = "free" | "packet" | "vault" | "pro";
+
+export type SubscriptionStatus =
+  | "inactive"
+  | "active"
+  | "past_due"
+  | "canceled"
+  | "trialing";
+
+export interface Profile {
+  id: string;
+  email: string | null;
+  stripe_customer_id: string | null;
+  subscription_tier: SubscriptionTier;
+  subscription_status: SubscriptionStatus;
+  current_period_end: string | null;
+  packet_credits: number;
+  created_at: string;
+  updated_at: string;
+}

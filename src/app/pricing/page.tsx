@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle } from "lucide-react";
 import MarketingShell from "@/components/marketing/MarketingShell";
+import PricingCta from "@/components/billing/PricingCta";
+import type { SubscriptionTier } from "@/types/database";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -10,9 +12,22 @@ export const metadata: Metadata = {
   alternates: { canonical: "/pricing" },
 };
 
-const plans = [
+type Plan = {
+  name: string;
+  tier: SubscriptionTier;
+  price: string;
+  period: string;
+  desc: string;
+  features: string[];
+  cta: string;
+  href?: string;
+  highlight: boolean;
+};
+
+const plans: Plan[] = [
   {
     name: "Free",
+    tier: "free",
     price: "$0",
     period: "forever",
     desc: "Organize your evidence at no cost.",
@@ -22,7 +37,7 @@ const plans = [
       "Transaction ledger",
       "Evidence vault (local storage)",
       "Red flag classifier",
-      "Basic case summary",
+      "Watermarked PDF preview",
     ],
     cta: "Get Started Free",
     href: "/signup",
@@ -30,6 +45,7 @@ const plans = [
   },
   {
     name: "Evidence Packet",
+    tier: "packet",
     price: "$19",
     period: "one-time per case",
     desc: "Export a clean, agency-ready packet for a single case.",
@@ -41,12 +57,12 @@ const plans = [
       "Reporting agency links",
       "Lifetime access to that packet",
     ],
-    cta: "Buy Report Export",
-    href: "/signup",
+    cta: "Buy Packet — $19",
     highlight: true,
   },
   {
     name: "Vault",
+    tier: "vault",
     price: "$8",
     period: "per month, or $79/yr",
     desc: "Ongoing case management with cloud backup and unlimited exports.",
@@ -59,11 +75,11 @@ const plans = [
       "Email reminders for stalled cases",
     ],
     cta: "Start Vault",
-    href: "/signup",
     highlight: false,
   },
   {
     name: "Professional",
+    tier: "pro",
     price: "$49",
     period: "per seat / month",
     desc: "For attorneys, recovery firms, investigators, and advocates.",
@@ -75,8 +91,7 @@ const plans = [
       "API access",
       "Dedicated support",
     ],
-    cta: "Talk to sales",
-    href: "/contact",
+    cta: "Start Professional",
     highlight: false,
   },
 ];
@@ -139,16 +154,20 @@ export default function PricingPage() {
                     </li>
                   ))}
                 </ul>
-                <Link
-                  href={plan.href}
-                  className={`text-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    plan.highlight
-                      ? "bg-red-600 hover:bg-red-700 text-white"
-                      : "border border-slate-600 hover:border-slate-500 text-slate-300"
-                  }`}
-                >
-                  {plan.cta}
-                </Link>
+                <PricingCta
+                  tier={plan.tier}
+                  label={plan.cta}
+                  freeHref={plan.tier === "free" ? plan.href ?? "/signup" : undefined}
+                  highlight={plan.highlight}
+                />
+                {plan.tier === "pro" && (
+                  <Link
+                    href="/contact"
+                    className="block text-center text-xs text-slate-400 hover:text-slate-200 mt-2"
+                  >
+                    Need volume seats? Talk to sales →
+                  </Link>
+                )}
               </div>
             ))}
           </div>

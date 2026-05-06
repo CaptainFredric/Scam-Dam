@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Shield, FolderOpen, LayoutDashboard } from "lucide-react";
+import { Shield, FolderOpen, LayoutDashboard, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Sidebar() {
@@ -10,6 +10,7 @@ export default function Sidebar() {
 
   const links = [
     { href: "/dashboard", label: "Cases", icon: <LayoutDashboard className="h-4 w-4" /> },
+    { href: "/billing", label: "Billing", icon: <CreditCard className="h-4 w-4" /> },
   ];
 
   return (

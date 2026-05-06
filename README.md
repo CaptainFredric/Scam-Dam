@@ -65,8 +65,16 @@ Open [http://localhost:3000](http://localhost:3000).
 
 Two targets, two purposes:
 
-- **Marketing site → GitHub Pages.** Pushed automatically via `.github/workflows/deploy-pages.yml` on every push to `main`. Builds a static export of the public pages only (landing, pricing, about, contact, FAQ, resources, security, privacy, terms, sitemap, robots) and publishes to `https://captainfredric.github.io/Scam-Dam`. The dashboard, dynamic case routes, Stripe API routes, and Supabase auth are stripped before build by `scripts/prepare-pages.mjs` (Pages can't run server code), and `/login`, `/signup`, `/dashboard` become "Coming soon" stubs that link back to the marketing site.
-- **Full app → Vercel** (or any Node host). Push to a Vercel project; everything works as-is, including dynamic routes, Stripe webhooks, and Supabase. **Required env vars:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_SITE_URL`.
+- **Marketing site → GitHub Pages.** Pushed automatically via `.github/workflows/deploy-pages.yml` on every push to `main`. Builds a static export of the public pages only (landing, pricing, about, contact, FAQ, resources, security, privacy, terms, sitemap, robots) and publishes to `https://captainfredric.github.io/Scam-Dam`. The dashboard, dynamic case routes, Stripe API routes, and Supabase auth are stripped before build by `scripts/prepare-pages.mjs` (Pages can't run server code), and `/login`, `/signup`, `/dashboard` become "Coming soon" stubs. Paid CTAs link to `/signup` instead of hitting the (nonexistent) checkout API.
+- **Full app → Vercel** (or any Node host). Push to a Vercel project; everything works as-is, including dynamic routes, Stripe webhooks, and Supabase. See `.env.example` for required env vars (Supabase URL/anon/service-role keys, Stripe secret/publishable/webhook secrets, and one Stripe Price ID per paid tier).
+
+### Stripe setup
+
+1. Run `supabase/schema.sql` then `supabase/migrations/0002_profiles_subscriptions.sql` in your Supabase SQL editor.
+2. In Stripe → Products, create three products with one recurring/one-time price each: Evidence Packet (one-time), Vault (monthly recurring), Professional (monthly recurring per seat). Copy the `price_xxx` IDs into `STRIPE_PRICE_PACKET`, `STRIPE_PRICE_VAULT`, `STRIPE_PRICE_PRO`.
+3. Stripe → Webhooks → add endpoint `https://your-domain/api/stripe/webhook` listening for `checkout.session.completed`, `customer.subscription.{created,updated,deleted}`, `invoice.payment_failed`. Copy the signing secret to `STRIPE_WEBHOOK_SECRET`.
+4. Stripe → Customer portal → enable; the `/api/stripe/portal` route uses it for self-service cancellation and invoices.
+5. Optional: enable Promotion Codes in Stripe to use the `allow_promotion_codes` field already wired into checkout.
 
 To enable Pages: in the GitHub repo, **Settings → Pages → Build and deployment → Source: GitHub Actions**, then push to `main` (or trigger the workflow manually).
 
