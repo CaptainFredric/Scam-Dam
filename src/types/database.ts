@@ -70,6 +70,18 @@ export type SubscriptionStatus =
   | "canceled"
   | "trialing";
 
+export interface CaseShare {
+  id: string;
+  case_id: string;
+  created_by: string;
+  expires_at: string | null;
+  revoked_at: string | null;
+  view_count: number;
+  last_viewed_at: string | null;
+  note: string | null;
+  created_at: string;
+}
+
 export interface Profile {
   id: string;
   email: string | null;

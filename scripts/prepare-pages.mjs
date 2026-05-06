@@ -22,6 +22,7 @@ const root = resolve(process.cwd());
 const removals = [
   "src/app/api",
   "src/app/auth",
+  "src/app/shared",
   "src/app/(dashboard)",
   "src/app/(auth)",
   "src/proxy.ts",

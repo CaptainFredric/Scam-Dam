@@ -24,7 +24,9 @@ const currencyOptions = [
 
 interface TransactionFormProps {
   caseId: string;
-  onAdd: (tx: Omit<Transaction, "id" | "created_at">) => void;
+  onAdd: (
+    tx: Omit<Transaction, "id" | "created_at">,
+  ) => Promise<unknown> | unknown;
 }
 
 export default function TransactionForm({ caseId, onAdd }: TransactionFormProps) {
@@ -37,8 +39,9 @@ export default function TransactionForm({ caseId, onAdd }: TransactionFormProps)
   const [exchange, setExchange] = useState("");
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (!date) { setError("Date is required."); return; }
@@ -46,21 +49,28 @@ export default function TransactionForm({ caseId, onAdd }: TransactionFormProps)
     if (isNaN(amountNum) || amountNum <= 0) { setError("Enter a valid amount."); return; }
     if (!platform.trim()) { setError("Platform is required."); return; }
 
-    onAdd({
-      case_id: caseId,
-      date,
-      amount: amountNum,
-      currency,
-      platform: platform.trim(),
-      transaction_type: txType,
-      wallet_address: walletAddress.trim() || null,
-      exchange: exchange.trim() || null,
-      notes: notes.trim() || null,
-      screenshot_url: null,
-    });
+    setSubmitting(true);
+    try {
+      await onAdd({
+        case_id: caseId,
+        date,
+        amount: amountNum,
+        currency,
+        platform: platform.trim(),
+        transaction_type: txType,
+        wallet_address: walletAddress.trim() || null,
+        exchange: exchange.trim() || null,
+        notes: notes.trim() || null,
+        screenshot_url: null,
+      });
 
-    setDate(""); setAmount(""); setPlatform(""); setWalletAddress("");
-    setExchange(""); setNotes(""); setTxType("deposit");
+      setDate(""); setAmount(""); setPlatform(""); setWalletAddress("");
+      setExchange(""); setNotes(""); setTxType("deposit");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not add transaction");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -90,7 +100,7 @@ export default function TransactionForm({ caseId, onAdd }: TransactionFormProps)
         />
       </div>
       {error && <p className="text-red-400 text-xs">{error}</p>}
-      <Button type="submit" size="sm">Add Transaction</Button>
+      <Button type="submit" size="sm" loading={submitting}>Add Transaction</Button>
     </form>
   );
 }

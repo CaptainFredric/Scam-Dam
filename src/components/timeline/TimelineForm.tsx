@@ -17,7 +17,9 @@ const eventTypeOptions = [
 
 interface TimelineFormProps {
   caseId: string;
-  onAdd: (entry: Omit<TimelineEntry, "id" | "created_at">) => void;
+  onAdd: (
+    entry: Omit<TimelineEntry, "id" | "created_at">,
+  ) => Promise<unknown> | unknown;
 }
 
 export default function TimelineForm({ caseId, onAdd }: TimelineFormProps) {
@@ -25,16 +27,29 @@ export default function TimelineForm({ caseId, onAdd }: TimelineFormProps) {
   const [eventDate, setEventDate] = useState("");
   const [description, setDescription] = useState("");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (!eventDate) { setError("Date is required."); return; }
     if (!description.trim()) { setError("Description is required."); return; }
-    onAdd({ case_id: caseId, event_type: eventType, event_date: eventDate, description: description.trim() });
-    setEventDate("");
-    setDescription("");
-    setEventType("first_contact");
+    setSubmitting(true);
+    try {
+      await onAdd({
+        case_id: caseId,
+        event_type: eventType,
+        event_date: eventDate,
+        description: description.trim(),
+      });
+      setEventDate("");
+      setDescription("");
+      setEventType("first_contact");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not add event");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -65,7 +80,7 @@ export default function TimelineForm({ caseId, onAdd }: TimelineFormProps) {
         />
       </div>
       {error && <p className="text-red-400 text-xs">{error}</p>}
-      <Button type="submit" size="sm">Add Event</Button>
+      <Button type="submit" size="sm" loading={submitting}>Add Event</Button>
     </form>
   );
 }

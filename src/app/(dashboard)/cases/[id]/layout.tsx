@@ -4,6 +4,8 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useCases } from "@/context/CaseContext";
 import CaseSummary from "@/components/cases/CaseSummary";
+import ShareCaseButton from "@/components/cases/ShareCaseButton";
+import DeleteCaseButton from "@/components/cases/DeleteCaseButton";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 
@@ -34,8 +36,14 @@ export default function CaseLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <div className="-m-6">
-      <CaseSummary caseData={caseData} />
+    <div className="-m-6 md:-m-8">
+      <div className="relative">
+        <CaseSummary caseData={caseData} />
+        <div className="absolute right-6 top-4 flex gap-2">
+          <ShareCaseButton caseId={caseId} />
+          <DeleteCaseButton caseId={caseId} caseTitle={caseData.title} />
+        </div>
+      </div>
       <nav className="bg-slate-800 border-b border-slate-700 px-6">
         <div className="flex overflow-x-auto">
           {tabs.map((tab) => {
