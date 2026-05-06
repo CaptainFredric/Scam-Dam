@@ -30,6 +30,7 @@ const removals = [
   "src/lib/stripe.ts",
   "src/lib/plans.ts",
   "src/lib/useSubscription.ts",
+  "src/lib/email.ts",
   "src/lib/exportZip.ts",
   "src/lib/exportCsv.ts",
   "src/lib/generateReport.ts",

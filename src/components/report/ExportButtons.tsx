@@ -34,11 +34,29 @@ export default function ExportButtons({
     setPdfLoading(true);
     try {
       const { generateReport } = await import("@/lib/generateReport");
-      // Free tier still gets a PDF — generator can stamp a watermark when
-      // passed `watermark: true`. The full clean export is unlocked by any
-      // paid tier or an unspent packet credit.
+      // Pro users get branded reports (logo + org + brand color +
+      // footer line). Best-effort — if branding fetch fails, render the
+      // default Scam Dam cover.
+      let branding: import("@/types/database").Branding | undefined;
+      if (subscription.tier === "pro") {
+        try {
+          const res = await fetch("/api/account/branding", { cache: "no-store" });
+          if (res.ok) {
+            const data = (await res.json()) as {
+              branding?: import("@/types/database").Branding;
+            };
+            branding = data.branding;
+          }
+        } catch {
+          /* ignore */
+        }
+      }
+      // Free tier still gets a PDF — generator stamps a watermark when
+      // passed `watermark: true`. Clean export is unlocked by any paid
+      // tier or an unspent packet credit.
       await generateReport(caseData, timeline, transactions, evidence, {
         watermark: !canExportClean,
+        branding,
       });
     } catch (err) {
       console.error("PDF generation failed:", err);

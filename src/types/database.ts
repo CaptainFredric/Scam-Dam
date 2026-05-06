@@ -90,6 +90,20 @@ export interface Profile {
   subscription_status: SubscriptionStatus;
   current_period_end: string | null;
   packet_credits: number;
+  org_name: string | null;
+  brand_logo_path: string | null;
+  brand_color: string | null;
+  brand_footer: string | null;
+  notify_stalled_cases: boolean;
+  notify_marketing: boolean;
+  last_stalled_notification_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface Branding {
+  org_name: string | null;
+  brand_logo_url: string | null;
+  brand_color: string | null;
+  brand_footer: string | null;
 }
