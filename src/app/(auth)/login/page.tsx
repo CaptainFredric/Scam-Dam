@@ -23,9 +23,10 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = safeNext(searchParams.get("next"));
+  const externalError = searchParams.get("error");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState(externalError ?? "");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -101,13 +102,22 @@ function LoginForm() {
           />
         </div>
         <div>
-          <label htmlFor="password" className="block text-sm text-slate-300 mb-1">
-            Password
-          </label>
+          <div className="flex items-center justify-between mb-1">
+            <label htmlFor="password" className="block text-sm text-slate-300">
+              Password
+            </label>
+            <Link
+              href="/forgot-password"
+              className="text-xs text-slate-400 hover:text-red-300"
+            >
+              Forgot password?
+            </Link>
+          </div>
           <input
             id="password"
             type="password"
             required
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full bg-slate-900 border border-slate-600 rounded-md px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"

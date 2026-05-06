@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-const PROTECTED_PREFIXES = ["/dashboard", "/cases", "/billing"];
+const PROTECTED_PREFIXES = ["/dashboard", "/cases", "/billing", "/account"];
 
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
@@ -60,5 +60,5 @@ export async function proxy(request: NextRequest) {
 export const config = {
   // Skip Next internals, the API namespace, static assets, and the public
   // marketing pages — we only need to gate the app surface.
-  matcher: ["/dashboard/:path*", "/cases/:path*", "/billing/:path*"],
+  matcher: ["/dashboard/:path*", "/cases/:path*", "/billing/:path*", "/account/:path*"],
 };

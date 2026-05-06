@@ -8,6 +8,7 @@ import {
   CreditCard,
   LifeBuoy,
   BookOpen,
+  UserCog,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +18,7 @@ export default function Sidebar() {
   const primary = [
     { href: "/dashboard", label: "Cases", icon: <LayoutDashboard className="h-4 w-4" /> },
     { href: "/billing", label: "Billing", icon: <CreditCard className="h-4 w-4" /> },
+    { href: "/account", label: "Account", icon: <UserCog className="h-4 w-4" /> },
   ];
   const secondary = [
     { href: "/resources", label: "Scam library", icon: <BookOpen className="h-4 w-4" /> },

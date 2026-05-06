@@ -21,6 +21,7 @@ const root = resolve(process.cwd());
 
 const removals = [
   "src/app/api",
+  "src/app/auth",
   "src/app/(dashboard)",
   "src/app/(auth)",
   "src/proxy.ts",
@@ -39,6 +40,7 @@ const removals = [
   "src/components/timeline",
   "src/components/transactions",
   "src/components/layout",
+  "src/components/account",
   "src/components/billing/UpgradeButton.tsx",
   "src/components/billing/OpenPortalButton.tsx",
   "src/components/billing/UpsellModal.tsx",
@@ -104,6 +106,21 @@ const stubs = [
     dir: "src/app/dashboard",
     h: "Dashboard is launching soon",
     s: "The Scam Dam dashboard isn’t available on this preview site. Until then, the resource library has every red-flag pattern and reporting channel you need.",
+  },
+  {
+    dir: "src/app/forgot-password",
+    h: "Password reset is launching soon",
+    s: "Once the case builder is live, this page will email you a reset link. Until then, no accounts exist on the preview site.",
+  },
+  {
+    dir: "src/app/reset-password",
+    h: "Password reset is launching soon",
+    s: "Once the case builder is live, this page will let you set a new password from a reset email link.",
+  },
+  {
+    dir: "src/app/account",
+    h: "Account settings launch with the app",
+    s: "Profile, password, data export, and account deletion become available when the case builder goes live.",
   },
 ];
 

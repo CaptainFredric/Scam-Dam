@@ -27,6 +27,7 @@ function SignupForm() {
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,12 +56,24 @@ function SignupForm() {
     try {
       const { createBrowserClient } = await import("@supabase/ssr");
       const supabase = createBrowserClient(supabaseUrl, supabaseKey);
-      const { error: authError } = await supabase.auth.signUp({ email, password });
+      const emailRedirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+      const { data, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo },
+      });
       if (authError) {
         setError(authError.message);
-      } else {
+        return;
+      }
+      // If email confirmation is enabled in Supabase, the user has no
+      // session yet — show a "check your email" state. Otherwise we have
+      // a session and can drop them on the dashboard.
+      if (data.session) {
         router.push(next);
         router.refresh();
+      } else {
+        setVerificationSent(true);
       }
     } catch {
       setError("An unexpected error occurred. Please try again.");
@@ -68,6 +81,28 @@ function SignupForm() {
       setLoading(false);
     }
   };
+
+  if (verificationSent) {
+    return (
+      <div>
+        <h1 className="text-2xl font-bold text-white mb-2">Check your email</h1>
+        <p className="text-slate-400 text-sm mb-4">
+          We&apos;ve sent a verification link to{" "}
+          <strong className="text-white">{email}</strong>. Click it to finish setting
+          up your account.
+        </p>
+        <p className="text-slate-500 text-xs mb-6">
+          Don&apos;t see it? Check spam, or wait a minute and try resending below.
+        </p>
+        <button
+          onClick={() => setVerificationSent(false)}
+          className="block text-center w-full border border-slate-600 hover:border-slate-500 text-slate-200 py-2 rounded-md text-sm font-medium transition-colors"
+        >
+          Use a different email
+        </button>
+      </div>
+    );
+  }
 
   const isDemoMode =
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
