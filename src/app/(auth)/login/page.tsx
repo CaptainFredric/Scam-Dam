@@ -1,11 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+
+function safeNext(raw: string | null): string {
+  // Only allow same-origin internal paths to avoid open-redirect.
+  if (!raw) return "/dashboard";
+  if (!raw.startsWith("/") || raw.startsWith("//")) return "/dashboard";
+  return raw;
+}
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = safeNext(searchParams.get("next"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -20,9 +37,12 @@ export default function LoginPage() {
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
-      // Demo mode: store a demo user in localStorage
+      // Demo mode: store a demo user in localStorage and matching cookie so
+      // the middleware lets them past.
       localStorage.setItem("scamdam_demo_user", JSON.stringify({ email, id: "demo" }));
-      router.push("/dashboard");
+      document.cookie = `scamdam_demo_user=1; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+      router.push(next);
+      router.refresh();
       return;
     }
 
@@ -36,7 +56,8 @@ export default function LoginPage() {
       if (authError) {
         setError(authError.message);
       } else {
-        router.push("/dashboard");
+        router.push(next);
+        router.refresh();
       }
     } catch {
       setError("An unexpected error occurred. Please try again.");

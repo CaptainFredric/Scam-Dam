@@ -38,8 +38,9 @@ export default function NewCaseForm({ onClose }: NewCaseFormProps) {
   const [totalLost, setTotalLost] = useState("");
   const [currency, setCurrency] = useState("USD");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (!title.trim()) {
@@ -47,16 +48,23 @@ export default function NewCaseForm({ onClose }: NewCaseFormProps) {
       return;
     }
     const amount = parseFloat(totalLost) || 0;
-    const newCase = createCase({
-      title: title.trim(),
-      scam_type: scamType,
-      status: "active",
-      description: description.trim() || null,
-      total_lost: amount,
-      currency,
-    });
-    onClose();
-    router.push(`/cases/${newCase.id}/timeline`);
+    setSubmitting(true);
+    try {
+      const newCase = await createCase({
+        title: title.trim(),
+        scam_type: scamType,
+        status: "active",
+        description: description.trim() || null,
+        total_lost: amount,
+        currency,
+      });
+      onClose();
+      router.push(`/cases/${newCase.id}/timeline`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not create case");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -106,10 +114,10 @@ export default function NewCaseForm({ onClose }: NewCaseFormProps) {
         <p className="text-red-400 text-sm">{error}</p>
       )}
       <div className="flex gap-3 pt-2">
-        <Button type="button" variant="ghost" onClick={onClose} className="flex-1">
+        <Button type="button" variant="ghost" onClick={onClose} className="flex-1" disabled={submitting}>
           Cancel
         </Button>
-        <Button type="submit" className="flex-1">
+        <Button type="submit" className="flex-1" loading={submitting}>
           Create Case
         </Button>
       </div>

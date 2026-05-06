@@ -5,9 +5,12 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import type { Case, TimelineEntry, Transaction, Evidence } from "@/types/database";
+import type { CaseRepository } from "@/lib/cases/repository";
+import { createLocalRepository } from "@/lib/cases/localRepository";
 
 function generateId(): string {
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
@@ -29,109 +32,136 @@ function getDemoUserId(): string {
   return id;
 }
 
+export type SyncMode = "local" | "cloud" | "loading";
+
 interface CaseContextValue {
   cases: Case[];
   activeCase: Case | null;
   setActiveCase: (c: Case | null) => void;
-  createCase: (data: Omit<Case, "id" | "user_id" | "created_at" | "updated_at">) => Case;
-  updateCase: (id: string, data: Partial<Case>) => void;
-  deleteCase: (id: string) => void;
+  createCase: (data: Omit<Case, "id" | "user_id" | "created_at" | "updated_at">) => Promise<Case>;
+  updateCase: (id: string, data: Partial<Case>) => Promise<void>;
+  deleteCase: (id: string) => Promise<void>;
 
   timelines: Record<string, TimelineEntry[]>;
-  addTimelineEntry: (entry: Omit<TimelineEntry, "id" | "created_at">) => TimelineEntry;
-  removeTimelineEntry: (caseId: string, entryId: string) => void;
+  addTimelineEntry: (
+    entry: Omit<TimelineEntry, "id" | "created_at">,
+  ) => Promise<TimelineEntry>;
+  removeTimelineEntry: (caseId: string, entryId: string) => Promise<void>;
 
   transactions: Record<string, Transaction[]>;
-  addTransaction: (tx: Omit<Transaction, "id" | "created_at">) => Transaction;
-  removeTransaction: (caseId: string, txId: string) => void;
+  addTransaction: (
+    tx: Omit<Transaction, "id" | "created_at">,
+  ) => Promise<Transaction>;
+  removeTransaction: (caseId: string, txId: string) => Promise<void>;
 
   evidenceMap: Record<string, Evidence[]>;
-  addEvidence: (ev: Omit<Evidence, "id" | "created_at">) => Evidence;
-  removeEvidence: (caseId: string, evId: string) => void;
+  addEvidence: (
+    ev: Omit<Evidence, "id" | "created_at">,
+    file?: File,
+  ) => Promise<Evidence>;
+  removeEvidence: (caseId: string, evId: string) => Promise<void>;
+
+  syncMode: SyncMode;
+  syncError: string | null;
 }
 
 const CaseContext = createContext<CaseContextValue | null>(null);
 
-const STORAGE_KEYS = {
-  cases: "scamdam_cases",
-  timelines: "scamdam_timelines",
-  transactions: "scamdam_transactions",
-  evidence: "scamdam_evidence",
-};
-
-function load<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function save<T>(key: string, value: T): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // quota exceeded — silently ignore
-  }
-}
-
 export function CaseProvider({ children }: { children: React.ReactNode }) {
+  const repoRef = useRef<CaseRepository | null>(null);
+  const userIdRef = useRef<string>("");
   const [cases, setCases] = useState<Case[]>([]);
   const [activeCase, setActiveCase] = useState<Case | null>(null);
   const [timelines, setTimelines] = useState<Record<string, TimelineEntry[]>>({});
   const [transactions, setTransactions] = useState<Record<string, Transaction[]>>({});
   const [evidenceMap, setEvidenceMap] = useState<Record<string, Evidence[]>>({});
-  const [hydrated, setHydrated] = useState(false);
+  const [syncMode, setSyncMode] = useState<SyncMode>("loading");
+  const [syncError, setSyncError] = useState<string | null>(null);
 
+  // Pick a repository on mount: cloud when Supabase is configured AND a user
+  // is signed in; local otherwise.
   useEffect(() => {
-    setCases(load<Case[]>(STORAGE_KEYS.cases, []));
-    setTimelines(load<Record<string, TimelineEntry[]>>(STORAGE_KEYS.timelines, {}));
-    setTransactions(load<Record<string, Transaction[]>>(STORAGE_KEYS.transactions, {}));
-    setEvidenceMap(load<Record<string, Evidence[]>>(STORAGE_KEYS.evidence, {}));
-    setHydrated(true);
+    let cancelled = false;
+
+    async function pick() {
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      if (url && key) {
+        try {
+          const [{ createClient }, { createCloudRepository }] = await Promise.all([
+            import("@/lib/supabase/client"),
+            import("@/lib/cases/cloudRepository"),
+          ]);
+          const supabase = createClient();
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
+          if (user) {
+            const repo = createCloudRepository(supabase, user.id);
+            const data = await repo.list();
+            if (cancelled) return;
+            repoRef.current = repo;
+            userIdRef.current = user.id;
+            setCases(data.cases);
+            setTimelines(data.timelines);
+            setTransactions(data.transactions);
+            setEvidenceMap(data.evidence);
+            setSyncMode("cloud");
+            return;
+          }
+        } catch (err) {
+          if (cancelled) return;
+          // If cloud setup failed (network, RLS misconfig, missing migration),
+          // fall through to local mode rather than locking the user out.
+          setSyncError(err instanceof Error ? err.message : "Cloud sync unavailable");
+        }
+      }
+
+      const repo = createLocalRepository();
+      const data = await repo.list();
+      if (cancelled) return;
+      repoRef.current = repo;
+      userIdRef.current = getDemoUserId();
+      setCases(data.cases);
+      setTimelines(data.timelines);
+      setTransactions(data.transactions);
+      setEvidenceMap(data.evidence);
+      setSyncMode("local");
+    }
+
+    void pick();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  useEffect(() => {
-    if (hydrated) save(STORAGE_KEYS.cases, cases);
-  }, [cases, hydrated]);
+  const repo = () => {
+    if (!repoRef.current) throw new Error("CaseContext used before initialization");
+    return repoRef.current;
+  };
 
-  useEffect(() => {
-    if (hydrated) save(STORAGE_KEYS.timelines, timelines);
-  }, [timelines, hydrated]);
+  const createCase: CaseContextValue["createCase"] = useCallback(async (data) => {
+    const newCase: Case = {
+      ...data,
+      id: generateId(),
+      user_id: userIdRef.current,
+      created_at: now(),
+      updated_at: now(),
+    };
+    await repo().createCase(newCase);
+    setCases((prev) => [newCase, ...prev]);
+    return newCase;
+  }, []);
 
-  useEffect(() => {
-    if (hydrated) save(STORAGE_KEYS.transactions, transactions);
-  }, [transactions, hydrated]);
-
-  useEffect(() => {
-    if (hydrated) save(STORAGE_KEYS.evidence, evidenceMap);
-  }, [evidenceMap, hydrated]);
-
-  const createCase = useCallback(
-    (data: Omit<Case, "id" | "user_id" | "created_at" | "updated_at">) => {
-      const newCase: Case = {
-        ...data,
-        id: generateId(),
-        user_id: getDemoUserId(),
-        created_at: now(),
-        updated_at: now(),
-      };
-      setCases((prev) => [newCase, ...prev]);
-      return newCase;
-    },
-    []
-  );
-
-  const updateCase = useCallback((id: string, data: Partial<Case>) => {
+  const updateCase: CaseContextValue["updateCase"] = useCallback(async (id, data) => {
+    await repo().updateCase(id, data);
     setCases((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, ...data, updated_at: now() } : c))
+      prev.map((c) => (c.id === id ? { ...c, ...data, updated_at: now() } : c)),
     );
   }, []);
 
-  const deleteCase = useCallback((id: string) => {
+  const deleteCase: CaseContextValue["deleteCase"] = useCallback(async (id) => {
+    await repo().deleteCase(id);
     setCases((prev) => prev.filter((c) => c.id !== id));
     setTimelines((prev) => {
       const next = { ...prev };
@@ -150,27 +180,33 @@ export function CaseProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const addTimelineEntry = useCallback(
-    (entry: Omit<TimelineEntry, "id" | "created_at">) => {
+  const addTimelineEntry: CaseContextValue["addTimelineEntry"] = useCallback(
+    async (entry) => {
       const newEntry: TimelineEntry = { ...entry, id: generateId(), created_at: now() };
+      await repo().addTimeline(newEntry);
       setTimelines((prev) => ({
         ...prev,
         [entry.case_id]: [newEntry, ...(prev[entry.case_id] ?? [])],
       }));
       return newEntry;
     },
-    []
+    [],
   );
 
-  const removeTimelineEntry = useCallback((caseId: string, entryId: string) => {
-    setTimelines((prev) => ({
-      ...prev,
-      [caseId]: (prev[caseId] ?? []).filter((e) => e.id !== entryId),
-    }));
-  }, []);
+  const removeTimelineEntry: CaseContextValue["removeTimelineEntry"] = useCallback(
+    async (caseId, entryId) => {
+      await repo().removeTimeline(caseId, entryId);
+      setTimelines((prev) => ({
+        ...prev,
+        [caseId]: (prev[caseId] ?? []).filter((e) => e.id !== entryId),
+      }));
+    },
+    [],
+  );
 
-  const addTransaction = useCallback((tx: Omit<Transaction, "id" | "created_at">) => {
+  const addTransaction: CaseContextValue["addTransaction"] = useCallback(async (tx) => {
     const newTx: Transaction = { ...tx, id: generateId(), created_at: now() };
+    await repo().addTransaction(newTx);
     setTransactions((prev) => ({
       ...prev,
       [tx.case_id]: [newTx, ...(prev[tx.case_id] ?? [])],
@@ -178,28 +214,38 @@ export function CaseProvider({ children }: { children: React.ReactNode }) {
     return newTx;
   }, []);
 
-  const removeTransaction = useCallback((caseId: string, txId: string) => {
-    setTransactions((prev) => ({
-      ...prev,
-      [caseId]: (prev[caseId] ?? []).filter((t) => t.id !== txId),
-    }));
-  }, []);
+  const removeTransaction: CaseContextValue["removeTransaction"] = useCallback(
+    async (caseId, txId) => {
+      await repo().removeTransaction(caseId, txId);
+      setTransactions((prev) => ({
+        ...prev,
+        [caseId]: (prev[caseId] ?? []).filter((t) => t.id !== txId),
+      }));
+    },
+    [],
+  );
 
-  const addEvidence = useCallback((ev: Omit<Evidence, "id" | "created_at">) => {
+  const addEvidence: CaseContextValue["addEvidence"] = useCallback(async (ev, file) => {
     const newEv: Evidence = { ...ev, id: generateId(), created_at: now() };
+    const stored = await repo().addEvidence(newEv, file);
     setEvidenceMap((prev) => ({
       ...prev,
-      [ev.case_id]: [newEv, ...(prev[ev.case_id] ?? [])],
+      [stored.case_id]: [stored, ...(prev[stored.case_id] ?? [])],
     }));
-    return newEv;
+    return stored;
   }, []);
 
-  const removeEvidence = useCallback((caseId: string, evId: string) => {
-    setEvidenceMap((prev) => ({
-      ...prev,
-      [caseId]: (prev[caseId] ?? []).filter((e) => e.id !== evId),
-    }));
-  }, []);
+  const removeEvidence: CaseContextValue["removeEvidence"] = useCallback(
+    async (caseId, evId) => {
+      const path = (evidenceMap[caseId] ?? []).find((e) => e.id === evId)?.storage_path;
+      await repo().removeEvidence(caseId, evId, path);
+      setEvidenceMap((prev) => ({
+        ...prev,
+        [caseId]: (prev[caseId] ?? []).filter((e) => e.id !== evId),
+      }));
+    },
+    [evidenceMap],
+  );
 
   return (
     <CaseContext.Provider
@@ -219,6 +265,8 @@ export function CaseProvider({ children }: { children: React.ReactNode }) {
         evidenceMap,
         addEvidence,
         removeEvidence,
+        syncMode,
+        syncError,
       }}
     >
       {children}
